@@ -1,7 +1,9 @@
-import '/constants.dart';
 import 'package:flutter/material.dart';
 
+import '/constants.dart';
+
 class RegistrationScreen extends StatefulWidget {
+  static const String id = 'registration_screen';
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -17,9 +19,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              height: 200.0,
-              child: Image.asset('images/logo.png'),
+            //******************************************************  13.1
+            Hero(
+              tag: 'logo',
+              child: Container(
+                height: 200.0,
+                child: Image.asset('images/logo.png'),
+              ),
             ),
             const SizedBox(
               height: 48.0,
@@ -80,7 +86,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 borderRadius: BorderRadius.circular(30.0),
                 child: MaterialButton(
                   onPressed: () {
-                    //Implement login functionality
+                    //Implement registration functionality
                   },
                   minWidth: 200.0,
                   height: 42.0,
