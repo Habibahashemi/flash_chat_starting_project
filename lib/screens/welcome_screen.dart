@@ -1,3 +1,5 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flash_chat_starting_project/components/rounded_button.dart';
 import 'package:flash_chat_starting_project/screens/login_screen.dart';
 import 'package:flash_chat_starting_project/screens/registration_screen.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +31,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     controller.forward();
 
     controller.addListener(() {
-      print(animation.value);
       setState(() {});
     });
   }
@@ -59,56 +60,33 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: Image.asset('images/logo.png'),
                   ),
                 ),
-                Text(
-                  'Flash chat',
-                  style: TextStyle(
+                DefaultTextStyle(
+                  style: const TextStyle(
                     fontSize: 45.0,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                   ),
+                  child: AnimatedTextKit(
+                      totalRepeatCount: 3,
+                      animatedTexts: [TypewriterAnimatedText('Flash chat')]),
                 ),
               ],
             ),
             SizedBox(height: 48.0),
 
             //  Expanded
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Material(
-                elevation: 5.0,
+            RoundedButton(
                 color: kLoginButtonColor,
-                borderRadius: BorderRadius.circular(30.0),
-                child: MaterialButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, LoginScreen.id);
-                  },
-                  minWidth: 200.0,
-                  height: 42.0,
-                  child: Text(
-                    'Log In',
-                    style: TextStyle(color: kWhiteColor),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Material(
-                elevation: 5.0,
-                color: kRegisterButtonColor,
-                borderRadius: BorderRadius.circular(30.0),
-                child: MaterialButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, RegistrationScreen.id);
-                  },
-                  minWidth: 200.0,
-                  height: 42.0,
-                  child: Text(
-                    'Register',
-                    style: TextStyle(color: kWhiteColor),
-                  ),
-                ),
-              ),
+                title: 'log In',
+                onPressed: () {
+                  Navigator.pushNamed(context, LoginScreen.id);
+                }),
+            RoundedButton(
+              color: kRegisterButtonColor,
+              title: 'Register',
+              onPressed: () {
+                Navigator.pushNamed(context, RegistrationScreen.id);
+              },
             ),
           ],
         ),
