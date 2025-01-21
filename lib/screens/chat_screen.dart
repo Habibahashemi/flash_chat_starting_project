@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat_starting_project/constants.dart';
+import 'package:flash_chat_starting_project/services/authService.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -8,6 +11,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final auth = FirebaseAuth.instance;
+  final _fireStore = FirebaseFirestore.instance;
+  TextEditingController _messageTextControllar = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,6 +26,8 @@ class _ChatScreenState extends State<ChatScreen> {
               icon: const Icon(Icons.logout),
               onPressed: () {
                 // Implement logout functionality
+                Navigator.pop(context);
+                auth.signOut();
               }),
         ],
         title: const Text('⚡ ️Chat'),
@@ -36,13 +44,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
-                      onChanged: (value) {},
+                      controller: _messageTextControllar,
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   TextButton(
                     onPressed: () {
                       //Implement send functionality
+                      _fireStore.collection('messages').add({
+                        'date': DateTime.now().microsecondsSinceEpoch,
+                        'text': _messageTextControllar,
+                        'sender': AuthService().getCurrentUser!.email
+                      });
                     },
                     child: const Icon(Icons.send,
                         size: 30, color: kSendButtonColor),
