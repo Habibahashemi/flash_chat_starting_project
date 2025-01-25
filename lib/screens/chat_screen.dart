@@ -14,6 +14,21 @@ class _ChatScreenState extends State<ChatScreen> {
   final auth = FirebaseAuth.instance;
   final _fireStore = FirebaseFirestore.instance;
   TextEditingController _messageTextControllar = TextEditingController();
+  // void getMessages() async {
+  //   var messages = await _fireStore.collection('messages').get();
+  //   for (var messages in messages.docs) {
+  //     print(messages.data());
+  //   }
+  // }
+  void messagesStreem() {
+    //streem
+    _fireStore.collection('messages').snapshots().listen((event) {
+      for (var messages in event.docs) {
+        print(messages.data());
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +42,9 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 // Implement logout functionality
                 Navigator.pop(context);
-                auth.signOut();
+                AuthService().signOut();
+                // getMessages();
+                // messagesStreem();
               }),
         ],
         title: const Text('⚡ ️Chat'),
@@ -37,6 +54,34 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+                stream: _fireStore.collection('messages').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Expanded(
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          backgroundColor: Colors.lightBlue,
+                        ),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    var messages = snapshot.data!.docs;
+                    List<Text> messagesWidgets = [];
+                    for (var message in messages) {
+                      var messageText = message.get('text');
+                      var sender = message.get('sender');
+                      Text messageWidget = Text('$messageText,from $sender');
+                      messagesWidgets.add(messageWidget);
+                    }
+                    return Column(
+                      children: messagesWidgets,
+                    );
+                  } else {
+                    return Center(child: Text('Snapshot has no data'));
+                  }
+                }),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
