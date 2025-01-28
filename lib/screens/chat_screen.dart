@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash_chat_starting_project/components/messageBubble.dart';
 import 'package:flash_chat_starting_project/constants.dart';
 import 'package:flash_chat_starting_project/services/authService.dart';
 import 'package:flutter/material.dart';
@@ -14,20 +15,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final auth = FirebaseAuth.instance;
   final _fireStore = FirebaseFirestore.instance;
   TextEditingController _messageTextControllar = TextEditingController();
-  // void getMessages() async {
-  //   var messages = await _fireStore.collection('messages').get();
-  //   for (var messages in messages.docs) {
-  //     print(messages.data());
-  //   }
-  // }
-  void messagesStreem() {
-    //streem
-    _fireStore.collection('messages').snapshots().listen((event) {
-      for (var messages in event.docs) {
-        print(messages.data());
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,48 +27,22 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
                 // Implement logout functionality
-                Navigator.pop(context);
+
                 AuthService().signOut();
-                // getMessages();
-                // messagesStreem();
               }),
         ],
-        title: const Text('⚡ ️Chat'),
+        title: const Text('⚡️ ️Chat'),
       ),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            StreamBuilder<QuerySnapshot>(
-                stream: _fireStore.collection('messages').snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Expanded(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          backgroundColor: Colors.lightBlue,
-                        ),
-                      ),
-                    );
-                  }
-                  if (snapshot.hasData) {
-                    var messages = snapshot.data!.docs;
-                    List<Text> messagesWidgets = [];
-                    for (var message in messages) {
-                      var messageText = message.get('text');
-                      var sender = message.get('sender');
-                      Text messageWidget = Text('$messageText,from $sender');
-                      messagesWidgets.add(messageWidget);
-                    }
-                    return Column(
-                      children: messagesWidgets,
-                    );
-                  } else {
-                    return Center(child: Text('Snapshot has no data'));
-                  }
-                }),
+            MessageStream(fireStore: _fireStore),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -95,12 +56,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      //Implement send functionality
+                      // Implement send functionality
                       _fireStore.collection('messages').add({
                         'date': DateTime.now().microsecondsSinceEpoch,
-                        'text': _messageTextControllar,
-                        'sender': AuthService().getCurrentUser!.email
+                        'text': _messageTextControllar.text, //*************
+                        'sender': AuthService().getCurrentUser!.email,
                       });
+                      _messageTextControllar.clear();
                     },
                     child: const Icon(Icons.send,
                         size: 30, color: kSendButtonColor),
@@ -112,5 +74,55 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+}
+
+class MessageStream extends StatelessWidget {
+  const MessageStream({
+    super.key,
+    required FirebaseFirestore fireStore,
+  }) : _fireStore = fireStore;
+
+  final FirebaseFirestore _fireStore;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: _fireStore
+            .collection('messages')
+            .orderBy('date', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Expanded(
+              child: Center(
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.lightBlue,
+                ),
+              ),
+            );
+          }
+          if (snapshot.hasData) {
+            var messages = snapshot.data!.docs;
+            List<Widget> messagesBubbles = [];
+            for (var message in messages) {
+              var messageText = message.get('text');
+              var sender = message.get('sender');
+              Widget messageBubble = MessageBubble(
+                  message: messageText,
+                  sender: sender,
+                  isMe: AuthService().getCurrentUser!.email == sender);
+              messagesBubbles.add(messageBubble);
+            }
+            return Expanded(
+              child: ListView(
+                reverse: true,
+                children: messagesBubbles,
+              ),
+            );
+          } else {
+            return Center(child: Text('Snapshot has no data'));
+          }
+        });
   }
 }
